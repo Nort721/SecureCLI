@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "DllServer.h"
+#include "Credentials.h"
 
 // Need to link with Ws2_32.lib, Mswsock.lib, and Advapi32.lib
 #pragma comment (lib, "Ws2_32.lib")
@@ -53,8 +54,8 @@ int main(int argc, char** argv) {
     // register user accounts
     struct UserCreds registeredUsers[REGISTERED_USERS_COUNT];
 
-    struct UserCreds user1 = { "admin1", "CHANGEME1" };
-    struct UserCreds user2 = { "admin2", "CHANGEME2" };
+    struct UserCreds user1 = { "admin1", "CHANGEME1", "uYyS5zj31o1NDMBd"};
+    struct UserCreds user2 = { "admin2", "CHANGEME2", "Yl5ch3J6WQ8spJJ9"};
 
     registeredUsers[0] = user1;
     registeredUsers[1] = user2;

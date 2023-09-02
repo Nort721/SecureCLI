@@ -127,9 +127,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Credentials.c" />
     <ClCompile Include="DllServer.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Credentials.h" />
     <ClInclude Include="DllServer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

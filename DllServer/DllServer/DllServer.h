@@ -1,5 +1,5 @@
-#ifndef CREDENTIALS_H
-#define CREDENTIALS_H
+#ifndef DLLSERVER_H
+#define DLLSERVER_H
 
 #define INDEX_TARGET_PROCESS_ID 1
 #define ERROR_WITH_CODE(e) (printf("[-] ERROR: %s, 0x%x\r\n", e, GetLastError()))
@@ -7,10 +7,5 @@
 #define INFO_WITH_CODE(e) (printf("[*] INFO: %s, 0x%x\r\n", e, GetLastError()))
 #define INFO(e) (printf("[*] INFO: %s\r\n", e))
 #define SUCCESS(e) (printf("[+] SUCCESS: %s\r\n", e))
-
-struct UserCreds {
-	char* username;
-	char* password;
-};
 
 #endif

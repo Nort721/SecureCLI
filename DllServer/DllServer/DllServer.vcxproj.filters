@@ -18,9 +18,15 @@
     <ClCompile Include="DllServer.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Credentials.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DllServer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Credentials.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
