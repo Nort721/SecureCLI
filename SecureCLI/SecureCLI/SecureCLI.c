@@ -19,7 +19,7 @@ void login_cmd(char* args) {
 
 	printf("\n");
 	if (!AquireAndLoadDll(credentials)) {
-		printf("\n[-] Invalid password.\n");
+		printf("[-] Invalid password.\n");
 	}
 }
 
@@ -52,6 +52,7 @@ void StartCLI() {
 	{
 		printf(">> ");
 		fgets(input, sizeof(input), stdin);
+
 		int input_length = strlen(input);
 
 		// checks if the user wrote anything minus the null byte

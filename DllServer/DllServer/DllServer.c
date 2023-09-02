@@ -12,7 +12,6 @@
 
 #define DEFAULT_PORT "1234"
 #define DEFAULT_BUFLEN 100
-#define INVALID_PASS_REPLY "invalid password"
 #define REGISTERED_USERS_COUNT 2
 
 int main(int argc, char** argv) {
@@ -45,11 +44,11 @@ int main(int argc, char** argv) {
     SOCKET ServerSocket = INVALID_SOCKET;
     SOCKET ClientSocket = INVALID_SOCKET;
 
-    struct addrinfo* result = NULL;
-    struct addrinfo hints;
-
     char recvbuf[DEFAULT_BUFLEN];
     int recvbuflen = DEFAULT_BUFLEN;
+
+    struct addrinfo* result = NULL;
+    struct addrinfo hints;
 
     // register user accounts
     struct UserCreds registeredUsers[REGISTERED_USERS_COUNT];
@@ -107,6 +106,8 @@ int main(int argc, char** argv) {
     }
 
     while (TRUE) {
+        // Clear the recvbuf
+        memset(recvbuf, 0, sizeof(recvbuf));
 
         // Accept incoming connection
         ClientSocket = accept(ServerSocket, NULL, NULL);
@@ -124,19 +125,36 @@ int main(int argc, char** argv) {
 
         char* context = NULL;
         char* username = strtok_s(recvbuf, "|", &context);
-        char password[DEFAULT_BUFLEN];
+        char* recv_pass = strtok_s(NULL, "|", &context);
+        int passIndex = 0;
 
         for (int i = 0; i < REGISTERED_USERS_COUNT; i++) {
             if (strstr(username, registeredUsers[i].username) != NULL) {
-                strcpy_s(password, sizeof(registeredUsers[i].password), registeredUsers[i].password);
-                break;
+                passIndex = i;
+                i = REGISTERED_USERS_COUNT;
             }
         }
 
-        printf("recived_pass: %s pass: %s\n", recvbuf, password);
-        if (strstr(recvbuf, password) != NULL) {
-            printf("Sending dll data\n");
+        //printf("recived_pass: %s pass: %s\n", recv_pass, registeredUsers[passIndex].password);
+        if (strstr(recv_pass, registeredUsers[passIndex].password) != NULL) {
+            printf("Authentication approved, sending dll to %s client.\n", username);
             send(ClientSocket, lpBuffer, dwLength, 0);
+        }
+        else {
+            printf("Authentication failed, sending flagged buffer.\n");
+
+            // Prepare a buffer for the dll
+            char* responseBuffer = (char*)malloc(dwLength);
+            if (responseBuffer == NULL) {
+                closesocket(ClientSocket);
+                WSACleanup();
+                ERROR_WITH_CODE("memory allocation failed");
+            }
+
+            memset(responseBuffer, 0, dwLength);  // Initialize with zeros
+            strcpy_s(responseBuffer, dwLength, "AUTH_FAIL");
+            send(ClientSocket, responseBuffer, dwLength, 0);
+            free(responseBuffer);
         }
     }
 

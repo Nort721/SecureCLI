@@ -3,6 +3,7 @@
 #include <ws2tcpip.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
 #include "Net.h"
 #include "CliCntrl.h"
 #include "ManualMapper.h"
@@ -12,9 +13,8 @@
 #pragma comment (lib, "AdvApi32.lib")
 
 #define DEFAULT_PORT "1234"
-#define INVALID_PASS_REPLY "invalid password"
 
-bool AquireAndLoadDll(char* password) {
+bool AquireAndLoadDll(char* credentials) {
 	HANDLE hTargetProcess = NULL;
 	HANDLE hModule = NULL;
 	DWORD dwBytesRead = 0;
@@ -53,8 +53,8 @@ bool AquireAndLoadDll(char* password) {
 		ERROR_WITH_CODE("connection failed");
 	}
 
-	// Send the password
-	if (send(clientSocket, password, (int)strlen(password), 0) == SOCKET_ERROR) {
+	// Send the credentials
+	if (send(clientSocket, credentials, (int)strlen(credentials), 0) == SOCKET_ERROR) {
 		closesocket(clientSocket);
 		WSACleanup();
 		ERROR_WITH_CODE("send failed");
@@ -87,6 +87,11 @@ bool AquireAndLoadDll(char* password) {
 	// Clean up
 	closesocket(clientSocket);
 	WSACleanup();
+	
+	// Check for the authentication flag
+	if (strncmp(receivedBuffer, "AUTH_FAIL", strlen("AUTH_FAIL")) == 0) {
+		return false;
+	}
 
 	// Create an LPVOID variable and copy the received data
 	LPVOID lpBuffer = malloc(bytesReceivedCount);
