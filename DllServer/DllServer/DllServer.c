@@ -54,8 +54,8 @@ int main(int argc, char** argv) {
     // register user accounts
     struct UserCreds registeredUsers[REGISTERED_USERS_COUNT];
 
-    struct UserCreds user1 = { "admin1", "CHANGEME1", "uYyS5zj31o1NDMBd"};
-    struct UserCreds user2 = { "admin2", "CHANGEME2", "Yl5ch3J6WQ8spJJ9"};
+    struct UserCreds user1 = { "admin1", "cf3ccb99e6d8ce2ef6f24ad10e05d48b5dd32246c90a5dfde7d264ff1637c03c", "uYyS5zj31o1NDMBd"};
+    struct UserCreds user2 = { "admin2", "0b415108ac05bfb8b30b1cd9fac5ca8802a9c4bcdbae2e7c11a31f25d6a74785", "Yl5ch3J6WQ8spJJ9"};
 
     registeredUsers[0] = user1;
     registeredUsers[1] = user2;
@@ -136,8 +136,10 @@ int main(int argc, char** argv) {
             }
         }
 
-        //printf("recived_pass: %s pass: %s\n", recv_pass, registeredUsers[passIndex].password);
-        if (strstr(recv_pass, registeredUsers[passIndex].password) != NULL) {
+        char* recv_pass_hashed = hash_password(recv_pass, registeredUsers[passIndex].salt);
+
+        printf("recived_pass: %s pass: %s\n", recv_pass_hashed, registeredUsers[passIndex].password);
+        if (strstr(recv_pass_hashed, registeredUsers[passIndex].password) != NULL) {
             printf("Authentication approved, sending dll to %s client.\n", username);
             send(ClientSocket, lpBuffer, dwLength, 0);
         }

@@ -2,42 +2,68 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <openssl/sha.h>
+#include <openssl/evp.h>
 
-char* hash_password(const char* password, const char* salt, int iterations) {
-    // Concatenate the password and salt
-    char* combined = (char*)malloc(strlen(password) + strlen(salt) + 1);
-    if (!combined) {
-        perror("Memory allocation failed");
-        exit(EXIT_FAILURE);
-    }
-    strcpy(combined, password);
-    strcat(combined, salt);
+char* hash_password(const char* password, const char* salt) {
+    EVP_MD_CTX* mdctx;
+    const EVP_MD* md;
+    char* result = NULL;
+    unsigned char* digest = NULL;
+    size_t digest_len;
+    size_t result_len = 2 * EVP_MAX_MD_SIZE + 1; // Maximum size for SHA-256 hash
 
-    // Perform multiple iterations of SHA-256 hashing
-    for (int i = 0; i < iterations; i++) {
-        unsigned char hash[SHA256_DIGEST_LENGTH];
-        SHA256_CTX sha256;
-        SHA256_Init(&sha256);
-        SHA256_Update(&sha256, combined, strlen(combined));
-        SHA256_Final(hash, &sha256);
-
-        // Convert the hash to hexadecimal string representation
-        char* temp_combined = (char*)malloc(2 * SHA256_DIGEST_LENGTH + 1);
-        if (!temp_combined) {
-            perror("Memory allocation failed");
-            exit(EXIT_FAILURE);
-        }
-
-        for (int j = 0; j < SHA256_DIGEST_LENGTH; j++) {
-            sprintf(&temp_combined[j * 2], "%02x", hash[j]);
-        }
-
-        // Update the combined string with the new hash
-        strcpy(combined, temp_combined);
-        free(temp_combined);
+    md = EVP_get_digestbyname("sha256");
+    if (!md) {
+        fprintf(stderr, "Error: SHA-256 not supported.\n");
+        return NULL;
     }
 
-    free(combined);
-    return combined; // Return the final hash as a hexadecimal string
+    mdctx = EVP_MD_CTX_new();
+    if (!mdctx) {
+        fprintf(stderr, "Error: Unable to create MD context.\n");
+        return NULL;
+    }
+
+    EVP_MD_CTX_init(mdctx);
+
+    for (int i = 0; i < HASH_ITERATIONS; i++) {
+        if (i == 0) {
+            EVP_DigestInit_ex(mdctx, md, NULL);
+            EVP_DigestUpdate(mdctx, password, strnlen_s(password, 255));
+            EVP_DigestUpdate(mdctx, salt, strnlen_s(salt, 255));
+        }
+        else {
+            EVP_DigestInit_ex(mdctx, md, NULL);
+            EVP_DigestUpdate(mdctx, digest, digest_len);
+            EVP_DigestUpdate(mdctx, salt, strnlen_s(salt, 255));
+        }
+
+        digest_len = EVP_MD_size(md);
+        digest = (unsigned char*)malloc(digest_len);
+
+        if (!digest) {
+            fprintf(stderr, "Error: Memory allocation failed.\n");
+            return NULL;
+        }
+
+        EVP_DigestFinal_ex(mdctx, digest, &digest_len);
+    }
+
+    result = (char*)malloc(result_len);
+
+    if (!result) {
+        fprintf(stderr, "Error: Memory allocation failed.\n");
+        return NULL;
+    }
+
+    result[0] = '\0'; // Ensure the result is initially empty
+
+    for (size_t i = 0; i < digest_len; i++) {
+        snprintf(result + i * 2, result_len - i * 2, "%02x", digest[i]);
+    }
+
+    EVP_MD_CTX_free(mdctx);
+    free(digest);
+
+    return result;
 }
